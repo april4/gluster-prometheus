@@ -33,6 +33,7 @@ LDFLAGS="-X main.exporterVersion=${VERSION} "
 LDFLAGS+="-X main.defaultGlusterd1Workdir=${GD1STATEDIR} -X main.defaultGlusterd2Workdir=${GD2STATEDIR} "
 LDFLAGS+="-X main.defaultConfFile=${CONFFILE}"
 LDFLAGS+=" -B 0x${GIT_SHA_FULL}"
+LDFLAGS+=" -s -w -extldflags '-static -zrelro -znow'"
 
 if [ "$FASTBUILD" == "yes" ];then
   # Enable the `go build -i` flag to install dependencies during build and
@@ -42,7 +43,7 @@ fi
 
 echo "Building $BIN $VERSION"
 
-go build $INSTALLFLAG -ldflags "${LDFLAGS}" -o "$OUTDIR/$BIN" "$GOPKG" || exit 1
+CGO_ENABLED=0 go build $INSTALLFLAG -a -asmflags="all=-trimpath=$PWD" -gcflags="all=-trimpath=$PWD" -installsuffix netgo -ldflags "${LDFLAGS}" -tags netgo -o "$OUTDIR/$BIN" "$GOPKG" || exit 1
 
 echo "Built $PACKAGE $VERSION at $OUTDIR/$BIN"
 
